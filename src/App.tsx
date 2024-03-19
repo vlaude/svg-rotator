@@ -4,75 +4,100 @@ import "@svgdotjs/svg.draggable.js";
 import React, { useCallback, useMemo } from "react";
 import { ReactSVG, Props as ReactSVGProps } from "react-svg";
 import svg from "./assets/svg.svg";
+import { SvgObject } from "./types.ts";
 
 const ReactSVGMemo = React.memo(ReactSVG);
 
 function App() {
   const initSvg = useCallback(() => {
     const svg = SVG("#svg").size("100%", "100%") as Svg;
+    svg.clear();
 
-    SVG("#group")?.remove();
-    const group = svg
-      .group()
-      .attr("id", "group")
-      .css("cursor", "pointer")
-      .draggable();
+    const objects: SvgObject[] = [];
 
-    const rect = group
-      .rect(200, 200)
-      .move(200, 200)
-      .rotate(0)
-      .fill("#f06")
-      .transform({ origin: "center center" });
+    const bob = new SvgObject("bob");
+    const tom = new SvgObject("tom", "yellow", { x: 300, y: 300 });
+    const wiwi = new SvgObject("wiwi", "blue", { x: 400, y: 100 });
 
-    const circle = group
-      .circle(30)
-      .move(rect.x(), rect.y())
-      .translate(-15, -15)
-      .fill("#fff")
-      .css("cursor", "grab")
-      .attr("id", "circle");
+    objects.push(bob);
+    objects.push(tom);
+    objects.push(wiwi);
 
-    let rotating = false;
+    objects.forEach((o) => {
+      o.draw();
+    });
 
-    circle.on("mousedown", () => {
-      rotating = true;
-      group.draggable(false);
+    let dragging: SvgObject | null = null;
+    // dragging delta is used to move the object from the mouse position on the said object when dragging
+    let draggingDelta = { x: 0, y: 0 };
+    let rotating: SvgObject | null = null;
+
+    svg.on("mousedown", (e) => {
+      const event = e as any;
+
+      const draggingTarget = objects.find((o) => o.id === event.target.id);
+      const rotatingTarget = objects.find(
+        (o) => `${o.id}-circle` === event.target.id,
+      );
+
+      if (draggingTarget) {
+        dragging = draggingTarget;
+        const mouse = getMousePos(svg, event);
+        draggingDelta = {
+          x: dragging.pos.x - mouse.x,
+          y: dragging.pos.y - mouse.y,
+        };
+      } else if (rotatingTarget) {
+        rotating = rotatingTarget;
+      }
     });
 
     svg.on("mouseup", () => {
-      if (rotating) {
-        rotating = false;
-        group.draggable();
+      if (dragging) {
+        dragging = null;
+        draggingDelta = { x: 0, y: 0 };
+      } else if (rotating) {
+        rotating = null;
       }
     });
 
     svg.on("mousemove", (e) => {
-      if (rotating) {
-        const event = e as MouseEvent;
+      const event = e as MouseEvent;
 
+      if (dragging) {
+        const mouse = getMousePos(svg, event);
+        dragging.setPos(mouse.x + draggingDelta.x, mouse.y + draggingDelta.y);
+        dragging.update();
+      } else if (rotating) {
         const pt = svg.node.createSVGPoint();
         pt.x = event.clientX;
         pt.y = event.clientY;
+
         const mouse = pt.matrixTransform(svg.node.getScreenCTM()?.inverse());
 
         const A = Math.atan2(
-          rect.node.getBoundingClientRect().height / 2,
-          rect.node.getBoundingClientRect().width / 2,
+          rotating.group.node.getBoundingClientRect().height / 2,
+          rotating.group.node.getBoundingClientRect().width / 2,
         );
-
         const a =
           Math.atan2(
-            rect.attr("y") + rect.attr("height") / 2 - mouse.y,
-            rect.attr("x") + rect.attr("width") / 2 - mouse.x,
+            rotating.pos.y + 100 - mouse.y,
+            rotating.pos.x + 100 - mouse.x,
           ) - A;
 
-        group.transform({
-          rotate: a * (180 / Math.PI),
-        });
+        rotating.setAngle(a);
+        rotating.update();
       }
     });
   }, []);
+
+  function getMousePos(svg: Svg, event: MouseEvent) {
+    const clientRect = svg.node.getBoundingClientRect();
+    return {
+      x: Math.round(event.clientX - clientRect.left),
+      y: Math.round(event.clientY - clientRect.top),
+    };
+  }
 
   const memoValue: Omit<ReactSVGProps, "ref"> = useMemo(
     () => ({
