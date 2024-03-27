@@ -1,6 +1,5 @@
 import { Svg, SVG } from "@svgdotjs/svg.js";
 import "@svgdotjs/svg.panzoom.js";
-import "@svgdotjs/svg.draggable.js";
 import React, { useCallback, useMemo } from "react";
 import { ReactSVG, Props as ReactSVGProps } from "react-svg";
 import svg from "./assets/svg.svg";
@@ -12,6 +11,16 @@ function App() {
   const initSvg = useCallback(() => {
     const svg = SVG("#svg").size("100%", "100%") as Svg;
     svg.clear();
+
+    svg.panZoom({
+      zoomMin: 0.25,
+      zoomMax: 2.5,
+      panButton: 1,
+      zoomFactor: 0.1,
+    });
+
+    svg.on("panStart", () => svg.css("cursor", "grabbing"));
+    svg.on("panEnd", () => svg.css("cursor", "default"));
 
     const objects: SvgObject[] = [];
 
