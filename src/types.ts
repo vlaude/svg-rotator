@@ -30,7 +30,6 @@ export class SvgObject {
   public draw() {
     this.group
       .rect(this.width, this.height)
-      .rotate(this.a)
       .fill(this.color)
       .css("cursor", "grab")
       .attr("id", this.id);
@@ -59,5 +58,16 @@ export class SvgObject {
       translate: [this.pos.x, this.pos.y],
       rotate: (this.a * 180) / Math.PI,
     });
+  }
+
+  public toJSON() {
+    return {
+      id: this.id,
+      pos: this.pos,
+      width: this.width,
+      height: this.height,
+      a: this.a,
+      color: this.color,
+    };
   }
 }

@@ -22,15 +22,19 @@ function App() {
     svg.on("panStart", () => svg.css("cursor", "grabbing"));
     svg.on("panEnd", () => svg.css("cursor", "default"));
 
-    const objects: SvgObject[] = [];
+    let objects: SvgObject[] = [];
 
-    const bob = new SvgObject("bob");
-    const tom = new SvgObject("tom", "yellow", { x: 300, y: 300 });
-    const wiwi = new SvgObject("wiwi", "blue", { x: 400, y: 100 });
-
-    objects.push(bob);
-    objects.push(tom);
-    objects.push(wiwi);
+    const json = localStorage.getItem("appState");
+    if (json) {
+      objects = JSON.parse(json).objects.map(
+        (o: any) => new SvgObject(o.id, o.color, o.pos, o.width, o.height, o.a),
+      );
+    } else {
+      const bob = new SvgObject("bob");
+      const tom = new SvgObject("tom", "yellow", { x: 300, y: 300 });
+      const wiwi = new SvgObject("wiwi", "blue", { x: 400, y: 100 });
+      objects = [bob, tom, wiwi];
+    }
 
     objects.forEach((o) => {
       o.draw();
@@ -65,8 +69,10 @@ function App() {
       if (dragging) {
         dragging = null;
         draggingDelta = { x: 0, y: 0 };
+        save(objects);
       } else if (rotating) {
         rotating = null;
+        save(objects);
       }
     });
 
@@ -106,6 +112,13 @@ function App() {
       x: Math.round(event.clientX - clientRect.left),
       y: Math.round(event.clientY - clientRect.top),
     };
+  }
+
+  function save(objects: SvgObject[]) {
+    localStorage.setItem(
+      "appState",
+      JSON.stringify({ objects: objects.map((o) => o.toJSON()) }),
+    );
   }
 
   const memoValue: Omit<ReactSVGProps, "ref"> = useMemo(
