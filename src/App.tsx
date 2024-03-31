@@ -4,6 +4,9 @@ import React, { useCallback, useMemo } from "react";
 import { ReactSVG, Props as ReactSVGProps } from "react-svg";
 import svg from "./assets/svg.svg";
 import { SvgObject } from "./types.ts";
+import logo1 from "./assets/logos/6d_1.png";
+import logo2 from "./assets/logos/6d_2.png";
+import logo3 from "./assets/logos/arai_1.png";
 
 const ReactSVGMemo = React.memo(ReactSVG);
 
@@ -27,12 +30,12 @@ function App() {
     const json = localStorage.getItem("appState");
     if (json) {
       objects = JSON.parse(json).objects.map(
-        (o: any) => new SvgObject(o.id, o.color, o.pos, o.width, o.height, o.a),
+        (o: any) => new SvgObject(o.id, o.img, o.pos, o.width, o.height, o.a),
       );
     } else {
-      const bob = new SvgObject("bob");
-      const tom = new SvgObject("tom", "yellow", { x: 300, y: 300 });
-      const wiwi = new SvgObject("wiwi", "blue", { x: 400, y: 100 });
+      const bob = new SvgObject("bob", logo1);
+      const tom = new SvgObject("tom", logo2, { x: 300, y: 300 });
+      const wiwi = new SvgObject("wiwi", logo3, { x: 400, y: 100 });
       objects = [bob, tom, wiwi];
     }
 

@@ -7,18 +7,18 @@ export class SvgObject {
   width: number;
   height: number;
   a: number;
-  color: string;
+  img: string;
 
   constructor(
     id: string,
-    color = "#f06",
+    img: string,
     pos = { x: 0, y: 0 },
     width = 200,
     height = 200,
     a = 0,
   ) {
     this.id = id;
-    this.color = color;
+    this.img = img;
     this.pos = pos;
     this.width = width;
     this.height = height;
@@ -29,10 +29,21 @@ export class SvgObject {
 
   public draw() {
     this.group
-      .rect(this.width, this.height)
-      .fill(this.color)
+      .image(this.img)
+      .size(this.width, this.height)
       .css("cursor", "grab")
       .attr("id", this.id);
+
+    this.group
+      .rect(this.width, this.height)
+      .stroke({
+        color: "dodgerblue",
+        width: 3,
+        dasharray: "10,10",
+        linejoin: "round",
+        linecap: "round",
+      })
+      .fill("none");
 
     this.group
       .circle(30)
@@ -63,11 +74,11 @@ export class SvgObject {
   public toJSON() {
     return {
       id: this.id,
+      img: this.img,
       pos: this.pos,
       width: this.width,
       height: this.height,
       a: this.a,
-      color: this.color,
     };
   }
 }
