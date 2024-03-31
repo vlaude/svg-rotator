@@ -78,17 +78,15 @@ function App() {
 
     svg.on("mousemove", (e) => {
       const event = e as MouseEvent;
+      const mouse = getMousePos(svg, event);
 
       if (dragging) {
-        const mouse = getMousePos(svg, event);
         dragging.setPos(mouse.x + draggingDelta.x, mouse.y + draggingDelta.y);
         dragging.update();
       } else if (rotating) {
         const pt = svg.node.createSVGPoint();
         pt.x = event.clientX;
         pt.y = event.clientY;
-
-        const mouse = pt.matrixTransform(svg.node.getScreenCTM()?.inverse());
 
         const A = Math.atan2(
           rotating.group.node.getBoundingClientRect().height / 2,
@@ -107,11 +105,11 @@ function App() {
   }, []);
 
   function getMousePos(svg: Svg, event: MouseEvent) {
-    const clientRect = svg.node.getBoundingClientRect();
-    return {
-      x: Math.round(event.clientX - clientRect.left),
-      y: Math.round(event.clientY - clientRect.top),
-    };
+    const pt = svg.node.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+
+    return pt.matrixTransform(svg.node.getScreenCTM()?.inverse());
   }
 
   function save(objects: SvgObject[]) {
